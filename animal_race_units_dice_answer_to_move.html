@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Animal Race – Units Dice (Answer to Move)</title>
+  <style>
+    :root { --purple-100:#f3e5f5; --purple-300:#ce93d8; --purple-400:#ba68c8; --lane-purple:#ead7f0; --unit-green:#2ecc71;
+      --square-size:26px; --lane-height:46px; --icon-size:38px; }
+    html,body{margin:0;padding:0;background:#f5edf8;color:#3b2e44;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif}
+    h1{margin:18px 0 10px;text-align:center;color:#7b1fa2;font-weight:800;letter-spacing:.5px}
+    #container{display:flex;flex-direction:column;align-items:center;gap:14px;padding:8px 12px 48px}
+    .card{background:var(--purple-100);border:3px dashed var(--purple-400);border-radius:12px;padding:14px;width:min(92%,900px);box-shadow:0 6px 18px rgba(42,10,61,.07)}
+    .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .spacer{flex:1}
+    button{border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;background:#b39ddb;color:#2d1143;box-shadow:0 4px 12px rgba(43,0,86,.12)}
+    #startBtn{background:#c5b2e6} #newBtn{background:#b39ddb} #throwBtn{background:#9575cd;color:#fff}
+    select,input[type=number],input[type=range],input[type=text]{border:2px solid var(--purple-300);border-radius:10px;padding:8px 10px;background:#fff}
+    label{font-weight:700;color:#6a1b9a}
+    #dicePanel{width:min(92%,900px);display:flex;flex-direction:column;align-items:center;gap:12px}
+    #unitsDice{display:grid;grid-template-columns:repeat(3,var(--square-size));grid-auto-rows:var(--square-size);gap:10px;padding:14px;border-radius:14px;background:#fff;border:3px solid var(--purple-300);box-shadow:0 6px 18px rgba(0,0,0,.07)}
+    .square{width:var(--square-size);height:var(--square-size);border:1px solid #000;background:#fff}
+    .green{background:var(--unit-green)}
+    .lanes{width:min(92%,900px);display:flex;flex-direction:column;gap:10px}
+    .lane{position:relative;width:100%;height:var(--lane-height);background:var(--lane-purple);border:2px dashed var(--purple-400);border-radius:12px;display:flex;align-items:center}
+    .laneIcon{position:absolute;left:6px;width:var(--icon-size);height:var(--icon-size);border-radius:50%;display:flex;align-items:center;justify-content:center;background:#b388ff;color:#fff;box-shadow:0 3px 8px rgba(0,0,0,.12)}
+    .flag{position:absolute;right:10px}
+    .setupRow{display:flex;align-items:center;gap:10px}
+    #playersWrap{display:flex;flex-direction:column;gap:8px;width:100%}
+    .answerRow{display:flex;gap:10px;align-items:center}
+    #answer{width:110px;text-align:center;font-weight:800}
+    .bad{animation:shake .25s linear 2;border-color:#e57373}
+    @keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+  </style>
+</head>
+<body>
+  <h1>Animal Race – Units Dice</h1>
+  <div id="container">
+    <div id="setup" class="card">
+      <div class="setupRow"><span style="font-weight:700;color:#6a1b9a">Select Players</span></div>
+      <div class="setupRow">
+        <label for="playerCount">Players (2–10):</label>
+        <input id="playerCount" type="number" min="2" max="10" value="2"/>
+        <label for="targetDistance">Target:</label>
+        <input id="targetDistance" type="number" min="5" max="50" value="10"/>
+        <div class="spacer"></div>
+        <button id="startBtn">Start Game</button>
+      </div>
+      <div id="playersWrap"></div>
+    </div>
+
+    <div id="controls" class="card" style="display:none">
+      <div class="row">
+        <label>Lane size:</label>
+        <button id="laneSmall">Small</button>
+        <button id="laneMed">Medium</button>
+        <button id="laneLarge">Large</button>
+        <div class="spacer"></div>
+        <label for="diceSize">Dice size:</label>
+        <input id="diceSize" type="range" min="20" max="64" value="26"/>
+        <span id="dicePx" style="min-width:48px;display:inline-block;text-align:right;color:#6a1b9a;font-weight:700">26px</span>
+        <div class="spacer"></div>
+        <label for="inGameTarget">Target:</label>
+        <input id="inGameTarget" type="number" min="5" max="50" value="10" style="width:80px"/>
+        <button id="applyTarget">Apply</button>
+      </div>
+    </div>
+
+    <div id="dicePanel" style="display:none;">
+      <div id="unitsDice" aria-label="Units Dice, 1 to 9"></div>
+      <div class="row">
+        <button id="throwBtn">Throw Dice • Player 1</button>
+        <button id="newBtn">New Game</button>
+      </div>
+      <!-- Answer input row under buttons -->
+      <div class="answerRow">
+        <label for="answer">How many green squares?</label>
+        <input id="answer" type="number" min="1" max="9" inputmode="numeric" />
+        <button id="enterBtn">Enter</button>
+        <span id="feedback" style="font-weight:700;color:#6a1b9a"></span>
+      </div>
+    </div>
+
+    <div id="lanes" class="lanes" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Avatar and color arrays
+    const AVATARS=['🐰','🐢','🐱','🦊','🐻','🦁','🦉','🐸','🐶','🦄'];
+    const COLORS=['#b388ff','#f48fb1','#80deea','#ffd54f','#aed581','#ffab91','#90caf9','#ce93d8','#fff59d','#a5d6a7'];
+
+    // Game state variables
+    let totalSquares=10, playerCount=2, players=[], positions=[], current=0, ended=false;
+    let lastRoll=null; // holds the dice result until validated
+
+    // Build setup rows for players
+    function buildSetupRows(){
+      const wrap=document.getElementById('playersWrap'); wrap.innerHTML='';
+      for(let i=0;i<playerCount;i++){
+        const row=document.createElement('div'); row.className='setupRow';
+        const name=document.createElement('input'); name.type='text'; name.placeholder='Name'; name.style.width='140px'; name.maxLength=18; name.dataset.kind='name';
+        const sel=document.createElement('select'); sel.setAttribute('aria-label','Player '+(i+1)+' avatar'); sel.dataset.kind='avatar';
+        AVATARS.forEach(a=>{ const opt=document.createElement('option'); opt.value=a; opt.textContent=' '+a+' '; sel.appendChild(opt); });
+        sel.selectedIndex=i%AVATARS.length;
+        row.appendChild(name); row.appendChild(sel); wrap.appendChild(row);
+      }
+    }
+
+    // Clamp integer
+    function clampInt(v,min,max){ v=parseInt(v,10); if(isNaN(v)) v=min; return Math.max(min, Math.min(max, v)); }
+
+    // Initialize race from setup
+    function initRace(){
+      totalSquares=clampInt(document.getElementById('targetDistance').value,5,50);
+      document.getElementById('inGameTarget').value = totalSquares;
+      players=[]; positions=[];
+      const rows=[...document.querySelectorAll('#playersWrap .setupRow')];
+      rows.forEach((row,idx)=>{
+        const name=row.querySelector('input[data-kind="name"]').value.trim()||('Player '+(idx+1));
+        const emoji=row.querySelector('select[data-kind="avatar"]').value;
+        players.push({name:name, emoji:emoji, color:COLORS[idx%COLORS.length]});
+        positions.push(0);
+      });
+      const lanes=document.getElementById('lanes'); lanes.innerHTML='';
+      players.forEach((p,idx)=>{
+        const lane=document.createElement('div'); lane.className='lane';
+        const icon=document.createElement('div'); icon.className='laneIcon'; icon.id='lane_'+idx; icon.title=p.name; icon.textContent=p.emoji; icon.style.background=p.color;
+        const flag=document.createElement('span'); flag.className='flag'; flag.textContent='🏁';
+        lane.appendChild(icon); lane.appendChild(flag); lanes.appendChild(lane);
+      });
+      setTurn(0);
+      updateLanePositions();
+      window.onresize=updateLanePositions;
+      lastRoll=null; document.getElementById('answer').value=''; setFeedback('');
+    }
+
+    // Set current turn display
+    function setTurn(i){
+      current=i;
+      const label=players[current]?.name || ('Player '+(current+1));
+      document.getElementById('throwBtn').textContent='Throw Dice • '+label;
+    }
+
+    // Build dice with n green squares
+    function buildDice(n=0){ const dice=document.getElementById('unitsDice'); dice.innerHTML='';
+      for(let i=0;i<9;i++){ const sq=document.createElement('div'); sq.className='square'; if(i<n) sq.classList.add('green'); dice.appendChild(sq); }
+    }
+
+    // Dice roll animation (slower speed)
+    function animateRoll(finalN){ let t=0; return new Promise(resolve=>{
+        const id=setInterval(()=>{
+          t++;
+          buildDice(1+Math.floor(Math.random()*9));
+          if(t>12){ clearInterval(id); buildDice(finalN); resolve(); }
+        }, 180);
+      }); }
+
+    // Move current player by n steps
+    function moveCurrent(n){
+      positions[current] = Math.min(totalSquares, positions[current] + n);
+      updateLanePositions();
+      if(positions[current] >= totalSquares){
+        ended=true;
+        const name=players[current]?.name || ('Player '+(current+1));
+        document.getElementById('throwBtn').textContent='Winner: '+name+' 🎉';
+        return;
+      }
+      setTurn((current+1)%players.length);
+    }
+
+    // Update lane icon positions
+    function updateLanePositions(){
+      players.forEach((p,idx)=>{
+        const icon=document.getElementById('lane_'+idx);
+        const lane=icon.parentElement;
+        const iconW=parseFloat(getComputedStyle(icon).width);
+        const maxX=lane.clientWidth - (iconW + 20);
+        const x=Math.max(6, Math.min(maxX, (positions[idx]/totalSquares)*maxX));
+        icon.style.left=x+'px';
+      });
+    }
+
+    // Provide feedback message and optional shake effect
+    function setFeedback(msg,bad=false){
+      const f=document.getElementById('feedback');
+      f.textContent=msg;
+      const a=document.getElementById('answer');
+      a.classList.remove('bad');
+      if(bad){ a.classList.add('bad'); setTimeout(()=>a.classList.remove('bad'), 400); }
+    }
+
+    // Validate student's answer
+    function validateAnswer(){
+      if(lastRoll===null || ended) return;
+      const guessed=parseInt(document.getElementById('answer').value, 10);
+      if(guessed === lastRoll){
+        setFeedback('Great counting!');
+        const steps = lastRoll;
+        lastRoll = null;
+        moveCurrent(steps);
+      } else {
+        setFeedback('Try again! Count the green squares.', true);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('playerCount').addEventListener('input', (e)=>{
+      let val=clampInt(e.target.value,2,10);
+      e.target.value = val;
+      playerCount = val;
+      buildSetupRows();
+    });
+    document.getElementById('startBtn').addEventListener('click', ()=>{
+      initRace();
+      document.getElementById('setup').style.display='none';
+      document.getElementById('controls').style.display='block';
+      document.getElementById('dicePanel').style.display='flex';
+      document.getElementById('lanes').style.display='flex';
+      buildDice(0);
+    });
+    document.getElementById('newBtn').addEventListener('click', ()=>window.location.reload());
+    document.getElementById('throwBtn').addEventListener('click', async ()=>{
+      if(ended) return;
+      const n = 1 + Math.floor(Math.random()*9);
+      await animateRoll(n);
+      lastRoll = n;
+      document.getElementById('answer').value='';
+      document.getElementById('answer').focus();
+      setFeedback('Type the number of green squares, then press Enter.');
+    });
+    document.getElementById('enterBtn').addEventListener('click', validateAnswer);
+    document.getElementById('answer').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ validateAnswer(); }});
+
+    // Lane size
+    document.getElementById('laneSmall').addEventListener('click', ()=>{
+      document.documentElement.style.setProperty('--lane-height','38px');
+      document.documentElement.style.setProperty('--icon-size','32px');
+      updateLanePositions();
+    });
+    document.getElementById('laneMed').addEventListener('click', ()=>{
+      document.documentElement.style.setProperty('--lane-height','46px');
+      document.documentElement.style.setProperty('--icon-size','38px');
+      updateLanePositions();
+    });
+    document.getElementById('laneLarge').addEventListener('click', ()=>{
+      document.documentElement.style.setProperty('--lane-height','58px');
+      document.documentElement.style.setProperty('--icon-size','48px');
+      updateLanePositions();
+    });
+
+    // Dice size slider
+    const diceSize=document.getElementById('diceSize');
+    const dicePx=document.getElementById('dicePx');
+    diceSize.addEventListener('input', ()=>{
+      document.documentElement.style.setProperty('--square-size', diceSize.value+'px');
+      dicePx.textContent = diceSize.value + 'px';
+      buildDice(0);
+    });
+
+    // Apply new target during game
+    document.getElementById('applyTarget').addEventListener('click', ()=>{
+      totalSquares = clampInt(document.getElementById('inGameTarget').value, 5, 50);
+      positions = positions.map(p=> Math.min(p, totalSquares));
+      ended = false;
+      updateLanePositions();
+      setTurn(current);
+    });
+
+    // Bootstrap: build initial setup rows
+    buildSetupRows();
+  </script>
+</body>
+</html>

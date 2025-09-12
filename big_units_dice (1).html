@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unit Dice</title>
+  <style>
+    :root{
+      --square-size:72px;
+      --unit-green:#2ecc71;
+      --accent:#7b1fa2;
+      --bg:#f5edf8;
+      --card:#ffffff;
+      --border:#ce93d8;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:#3b2e44;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif}
+    h1{font-size:clamp(20px,3.6vw,28px);text-align:center;margin:20px 0 8px;color:var(--accent);letter-spacing:.4px}
+    .wrap{display:flex;flex-direction:column;align-items:center;gap:14px;padding:14px}
+    .card{width:min(92%,920px);background:var(--card);border:3px solid var(--border);
+      border-radius:16px;box-shadow:0 8px 22px rgba(34,0,51,.08);padding:16px}
+    .dice-card{display:flex;flex-direction:column;align-items:center;}
+    .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    label{font-weight:800;color:#6a1b9a}
+    input[type="range"]{width:200px}
+    .btn{border:0;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
+      background:#9575cd;color:#fff;box-shadow:0 6px 16px rgba(69,0,120,.18);transition:transform .06s ease}
+    .btn:active{transform:translateY(1px)}
+    #unitsDice{display:grid;grid-template-columns:repeat(3, var(--square-size));grid-auto-rows:var(--square-size);
+      gap:14px;padding:18px;border-radius:18px;background:#fff;border:3px solid var(--border);
+      box-shadow:0 10px 26px rgba(0,0,0,.08);
+      /* Center the dice grid horizontally on the page */
+      margin-left:auto;margin-right:auto;
+      width:max-content;}
+    .square{width:var(--square-size);height:var(--square-size);border:1.6px solid #1b1b1b;background:#fff;border-radius:6px}
+    .green{background:var(--unit-green)}
+    .muted{opacity:.7}
+    .pill{padding:6px 10px;border-radius:999px;background:#ede7f6;color:#4527a0;font-weight:800}
+    .hint{font-size:13px;color:#5b4b67}
+    /* Focus & accessibility */
+    .btn, input[type="range"]{outline:none}
+    .btn:focus-visible, input[type="range"]:focus-visible{box-shadow:0 0 0 3px #cdb6ff}
+  </style>
+</head>
+<body>
+  <h1>Unit Dice</h1>
+  <div class="wrap">
+    <div class="card">
+      <div class="row" role="group" aria-label="Dice controls">
+        <button id="rollBtn" class="btn" aria-label="Roll the dice">Roll</button>
+        <span class="pill" id="status" aria-live="polite">Ready</span>
+        <div style="flex:1"></div>
+        <label for="sizeSlider">Dice size:</label>
+        <input id="sizeSlider" type="range" min="20" max="100" value="72" />
+        <strong id="sizePx" class="hint">72px</strong>
+      </div>
+    </div>
+
+    <div class="card dice-card" aria-label="Units Dice, shows 1 to 9 green squares">
+      <div id="unitsDice" tabindex="0" role="img" aria-label="Units Dice grid. Click or press R to roll." title="Click the dice or press R to roll"></div>
+      <div class="hint" style="margin-top:10px">Tip: Click the dice or press the <strong>R</strong> key to roll.</div>
+    </div>
+  </div>
+
+  <script>
+    // Unit Dice — based on the units-dice concept (3x3 grid) from the user's attached program.
+    let currentN = 0;
+    const dice = document.getElementById('unitsDice');
+    const rollBtn = document.getElementById('rollBtn');
+    const statusEl = document.getElementById('status');
+    const sizeSlider = document.getElementById('sizeSlider');
+    const sizePx = document.getElementById('sizePx');
+
+    function buildDice(n=0){
+      dice.innerHTML = '';
+      for(let i=0;i<9;i++){
+        const sq = document.createElement('div');
+        sq.className = 'square' + (i<n ? ' green' : '');
+        dice.appendChild(sq);
+      }
+      currentN = n;
+    }
+
+    function animateRoll(finalN){
+      return new Promise(resolve=>{
+        let t=0;
+        statusEl.textContent = 'Rolling…';
+        const id = setInterval(()=>{
+          t++;
+          buildDice(1 + Math.floor(Math.random()*9));
+          if(t>12){
+            clearInterval(id);
+            buildDice(finalN);
+            statusEl.textContent = 'Rolled';
+            resolve();
+          }
+        }, 90);
+      });
+    }
+
+    async function roll(){
+      // Random 1–9
+      const n = 1 + Math.floor(Math.random()*9);
+      rollBtn.disabled = true;
+      rollBtn.classList.add('muted');
+      await animateRoll(n);
+      // Do not speak the number; students can count the green squares.
+      // Briefly pulse to draw attention.
+      dice.animate([{transform:'scale(1)'},{transform:'scale(1.03)'},{transform:'scale(1)'}],{duration:320, easing:'ease-out'});
+      rollBtn.disabled = false;
+      rollBtn.classList.remove('muted');
+    }
+
+    // Interactions
+    rollBtn.addEventListener('click', roll);
+    dice.addEventListener('click', roll);
+    window.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase()==='r'){ roll(); }
+    });
+
+    // Size slider
+    sizeSlider.addEventListener('input', ()=>{
+      document.documentElement.style.setProperty('--square-size', sizeSlider.value + 'px');
+      sizePx.textContent = sizeSlider.value + 'px';
+      // rebuild to preserve the current count with new size
+      buildDice(currentN);
+    });
+
+    // Init
+    buildDice(0);
+  </script>
+</body>
+</html>
