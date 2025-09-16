@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nepean School Maths Suite</title>
+    <!-- Preconnects for Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Load multiple weights (300,400,700) so we can set lighter font weights for nav buttons -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+        /* Root color variables match the existing maths program */
+        :root {
+            /* Background changed to a muted pastel purple */
+            --bg-color: #dfccf1;
+            /* Pastel colour palette for the navigation buttons */
+            /* Decimal Street buttons share this muted pastel green */
+            --decimal-colour: #A8D5BA;
+            --decimal-hover: #97C7AC;
+            /* Single units buttons share this muted pastel purple */
+            --single-colour: #D4A9E4;
+            --single-hover: #C398D1;
+            /* Subitising 0-9 button uses this muted pastel blue */
+            --sub-colour: #AFCBFF;
+            --sub-hover: #9BB5E0;
+            /* Animal Race 0-9 button uses this muted pastel orange */
+            --animal-colour: #F8D5A3;
+            --animal-hover: #EAC492;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 120px;
+            min-height: 100vh;
+        }
+        /* Central panel with shadow and rounded corners */
+        .nav-panel {
+            padding: 30px 40px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            /* Increase the maximum width to allow button text to fit on two lines */
+            max-width: 800px;
+            width: calc(100% - 40px);
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            text-align: center;
+        }
+        /* Container for navigation buttons now arranges items in columns */
+        .nav-buttons {
+            /* Use a grid to enforce four columns */
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px; /* Reduced gap to fit 4 columns */
+            justify-items: center;
+        }
+        /* Each column stacks its buttons vertically */
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        /* Base button styling reused from the maths program */
+        .nav-button {
+            /* Maintain generous padding (will be overridden later in the block) */
+            border: none;
+            border-radius: 8px;
+            /* Slightly reduce font size to help text fit better onto two lines */
+            font-size: 1rem;
+            /* Use light weight instead of bold for a less bold appearance */
+            font-weight: 300;
+            /* Adjust padding to maintain generous size while allowing more width for text */
+            padding: 26px 20px; /* Reduced padding to fit 4 columns */
+            text-decoration: none;
+            color: #ffffff;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.2s ease;
+            text-align: center;
+            width: 120px; /* Set a fixed width */
+            box-sizing: border-box; /* Include padding in the width */
+        }
+        .nav-button:active {
+            transform: scale(0.95);
+        }
+        /* Colour classes for the navigation buttons */
+        /* Decimal Street buttons both use this pastel green */
+        .btn-decimal {
+            background-color: var(--decimal-colour);
+        }
+        .btn-decimal:hover {
+            background-color: var(--decimal-hover);
+        }
+        /* Single units buttons both use this pastel purple */
+        .btn-single {
+            background-color: var(--single-colour);
+        }
+        .btn-single:hover {
+            background-color: var(--single-hover);
+        }
+        /* Subitising 0-9 uses this pastel blue */
+        .btn-sub {
+            background-color: var(--sub-colour);
+        }
+        .btn-sub:hover {
+            background-color: var(--sub-hover);
+        }
+        /* Animal Race button uses this pastel orange */
+        .btn-animal {
+            background-color: var(--animal-colour);
+        }
+        .btn-animal:hover {
+            background-color: var(--animal-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-panel">
+        <h1>Nepean School Maths Suite</h1>
+        <div class="nav-buttons">
+            <!-- Column 1: Decimal Street options -->
+            <div class="column">
+                <a class="nav-button btn-decimal" href="DS.html">Decimal Street<br>(I Do, We Do)</a>
+                <!-- Make both Decimal Street buttons use the same colour -->
+                <a class="nav-button btn-decimal" href="htu.auto.html">Decimal Street<br>(You Do)</a>
+            </div>
+            <!-- Column 2: Single units options -->
+            <div class="column">
+                <a class="nav-button btn-single" href="su.ido.html">Single units<br>(I Do, We Do)</a>
+                <!-- Make both Single units buttons use the same colour -->
+                <a class="nav-button btn-single" href="su.youdo.html">Single units<br>(You Do)</a>
+            </div>
+            <!-- Column 3: Subitising game -->
+            <div class="column">
+                <a class="nav-button btn-sub" href="sub0-9.html">Subitising 0-9</a>
+            </div>
+            <!-- Column 4: Animal Race game -->
+            <div class="column">
+                <a class="nav-button btn-animal" href="animalrace.html">Animal Race 0-9</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
